@@ -46,9 +46,7 @@ function normalizeUrl(input) {
 }
 
 function isIpAddress(hostname) {
-  // IPv4
   if (/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) return true;
-  // simple IPv6 check
   if (hostname.includes(":") && /^[0-9a-fA-F:]+$/.test(hostname)) return true;
   return false;
 }
@@ -66,7 +64,6 @@ function analyze(urlObj) {
   const full = urlObj.href;
   const path = urlObj.pathname + urlObj.search;
 
-  // 1. IP address instead of domain
   if (isIpAddress(hostname)) {
     findings.push({
       level: "high",
@@ -75,7 +72,6 @@ function analyze(urlObj) {
     score += 30;
   }
 
-  // 2. URL shortener
   if (SHORTENERS.some(s => hostname === s || hostname.endsWith("." + s))) {
     findings.push({
       level: "med",
@@ -84,7 +80,6 @@ function analyze(urlObj) {
     score += 20;
   }
 
-  // 3. Suspicious TLD
   const tld = getTld(hostname);
   if (SUSPICIOUS_TLDS.includes(tld)) {
     findings.push({
@@ -94,7 +89,6 @@ function analyze(urlObj) {
     score += 25;
   }
 
-  // 4. Brand impersonation
   const brandHit = BRANDS.find(b => hostname.includes(b));
   if (brandHit) {
     const isOfficial = OFFICIAL_DOMAINS.some(d => hostname === d || hostname.endsWith("." + d));
@@ -107,7 +101,6 @@ function analyze(urlObj) {
     }
   }
 
-  // 5. Too many subdomains / long hostname
   const labels = hostname.split(".");
   if (labels.length >= 5) {
     findings.push({
@@ -124,9 +117,7 @@ function analyze(urlObj) {
     score += 12;
   }
 
-  // 6. @ symbol trick
-  if (path.includes("@") || full.includes("@") && !full.startsWith("mailto:")) {
-    // the classic userinfo@host trick is already parsed by URL, but leftover @ in path is also common
+  if (path.includes("@") || (full.includes("@") && !full.startsWith("mailto:"))) {
     findings.push({
       level: "high",
       text: "Contains an @ symbol. This is a classic phishing trick that can make a URL appear to point to a different site."
@@ -134,7 +125,6 @@ function analyze(urlObj) {
     score += 25;
   }
 
-  // 7. Missing HTTPS
   if (urlObj.protocol === "http:") {
     findings.push({
       level: "med",
@@ -143,9 +133,7 @@ function analyze(urlObj) {
     score += 12;
   }
 
-  // 8. Homoglyph / look-alike (very basic)
-  const suspiciousChars = /[аеорсухії]/n  // Cyrillic look-alikes that often appear in homograph attacks
-  if (suspiciousChars.test(hostname)) {
+  const suspiciousChars = /[аеорсухії]/n  if (suspiciousChars.test(hostname)) {
     findings.push({
       level: "high",
       text: "Hostname contains characters that look like Latin letters but are from another alphabet (possible homograph / look-alike attack)."
@@ -153,7 +141,6 @@ function analyze(urlObj) {
     score += 28;
   }
 
-  // 9. Very long overall URL
   if (full.length > 150) {
     findings.push({
       level: "low",
@@ -162,7 +149,6 @@ function analyze(urlObj) {
     score += 8;
   }
 
-  // 10. Numeric-looking domain (lots of digits)
   const digitRatio = (hostname.match(/\d/g) || []).length / Math.max(hostname.length, 1);
   if (digitRatio > 0.35 && hostname.length > 8) {
     findings.push({
@@ -172,7 +158,6 @@ function analyze(urlObj) {
     score += 12;
   }
 
-  // Cap score
   score = Math.min(score, 100);
 
   let risk = "Low";
@@ -216,21 +201,26 @@ function runAnalysis() {
 
   const result = analyze(urlObj);
 
-  scoreValue.textContent = result.score;
-  riskLevel.textContent = result.risk;
-  urlDisplay.textContent = result.url;
+  // Force re-animation of results section
+  results.classList.add("hidden");
+  // Small delay so the browser registers the class change before removing it
+  requestAnimationFrame(() => {
+    scoreValue.textContent = result.score;
+    riskLevel.textContent = result.risk;
+    urlDisplay.textContent = result.url;
 
-  scoreCircle.className = "score-circle " + result.riskClass;
+    scoreCircle.className = "score-circle " + result.riskClass;
 
-  findingsList.innerHTML = "";
-  result.findings.forEach(f => {
-    const div = document.createElement("div");
-    div.className = "finding " + f.level;
-    div.innerHTML = `<span class="badge">${f.level}</span><p>${f.text}</p>`;
-    findingsList.appendChild(div);
+    findingsList.innerHTML = "";
+    result.findings.forEach(f => {
+      const div = document.createElement("div");
+      div.className = "finding " + f.level;
+      div.innerHTML = `<span class="badge">${f.level}</span><p>${f.text}</p>`;
+      findingsList.appendChild(div);
+    });
+
+    results.classList.remove("hidden");
   });
-
-  results.classList.remove("hidden");
 }
 
 btn.addEventListener("click", runAnalysis);

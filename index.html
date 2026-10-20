@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phishing Link Detector – Educational</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Phishing Link Detector</h1>
+      <p class="subtitle">Educational tool – analyzes common phishing indicators</p>
+    </header>
+
+    <section class="input-section">
+      <label for="url-input">Paste a URL to analyze</label>
+      <div class="input-row">
+        <input
+          type="text"
+          id="url-input"
+          placeholder="https://example.com or paste any suspicious link"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="analyze-btn">Analyze</button>
+      </div>
+      <p class="hint">Runs completely in your browser. Nothing is sent to a server.</p>
+    </section>
+
+    <section id="results" class="results hidden">
+      <div class="score-card">
+        <div class="score-circle" id="score-circle">
+          <span id="score-value">0</span>
+          <small>/ 100</small>
+        </div>
+        <div class="score-label">
+          <h2 id="risk-level">—</h2>
+          <p id="url-display"></p>
+        </div>
+      </div>
+
+      <div class="findings" id="findings-list">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="education">
+        <h3>What do these scores mean?</h3>
+        <ul>
+          <li><strong>0–29</strong> Low – looks relatively clean by the rules we check</li>
+          <li><strong>30–59</strong> Medium – some warning signs present</li>
+          <li><strong>60–100</strong> High – multiple strong phishing indicators</li>
+        </ul>
+        <p class="disclaimer">
+          This is a heuristic educational tool only. It is not a replacement for real security products or browser protection.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <p>Built for learning · <a href="https://github.com/PrinceLucasKM/phishing-link-detector" target="_blank" rel="noopener">View source on GitHub</a></p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
